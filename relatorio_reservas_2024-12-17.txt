@@ -1,0 +1,4 @@
+Relatório de Reservas
+---------------------
+Reservas no mês 10 de 2024: 6
+Usuários no ano: 7Quarto mais reservado: Quarto ID: 8 com 1 reservas.Quarto menos reservado: Quarto ID: 8 com 1 reservas.
