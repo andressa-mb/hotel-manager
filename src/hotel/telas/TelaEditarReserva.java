@@ -4,6 +4,7 @@
  */
 package hotel.telas;
 
+import hotel.DAO.ReservaDAO;
 import hotel.model.Reserva;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -41,7 +42,20 @@ public class TelaEditarReserva extends javax.swing.JFrame {
             txtCheckout.setText(""); // Ou qualquer outro valor padrão, caso seja nulo
         }
 
-        ckbStatus.setSelectedIndex(reserva.getStatus() + 1);
+        switch (reserva.getStatus()) {
+            case 1:
+                ckbStatus.setSelectedIndex(0); // Confirmado
+                break;
+            case 2:
+                ckbStatus.setSelectedIndex(1); // Pendente
+                break;
+            case 3:
+                ckbStatus.setSelectedIndex(2); // Cancelado
+                break;
+            default:
+                ckbStatus.setSelectedIndex(-1); // Nenhuma seleção
+                break;
+        }
         ckbPagamento.setSelectedItem(reserva.getDetalhesPagamento());
     }
 
@@ -246,13 +260,37 @@ public class TelaEditarReserva extends javax.swing.JFrame {
             reserva.setDataCheckin(LocalDate.parse(txtCheckin.getText(), formatter));
             reserva.setDataPrevCheckout(LocalDate.parse(txtPrevCheckout.getText(), formatter));
 
+            int quartoId = Integer.parseInt(txtIdQuarto.getText());
+            LocalDate checkin = LocalDate.parse(txtCheckin.getText(), formatter);
+            LocalDate prevCheckout = LocalDate.parse(txtPrevCheckout.getText(), formatter);
+
             if (!txtCheckout.getText().isEmpty()) {
                 reserva.setDataCheckout(LocalDate.parse(txtCheckout.getText(), formatter));
             } else {
                 reserva.setDataCheckout(null);
             }
-            reserva.setStatus((ckbStatus.getSelectedIndex() + 1));
+            int statusSelecionado = ckbStatus.getSelectedIndex();
+            switch (statusSelecionado) {
+                case 0:
+                    reserva.setStatus(1); // Confirmado
+                    break;
+                case 1:
+                    reserva.setStatus(2); // Pendente
+                    break;
+                case 2:
+                    reserva.setStatus(3); // Cancelado
+                    break;
+                default:
+                    throw new IllegalArgumentException("Status inválido selecionado!");
+            }
             reserva.setDetalhesPagamento((String) ckbPagamento.getSelectedItem());
+
+            ReservaDAO reservaDao = new ReservaDAO();
+            if (!reservaDao.getDisponibilidadeQuarto(quartoId, checkin, prevCheckout)) {
+                JOptionPane.showMessageDialog(this, "Quarto não está disponível nesta data. ");
+                return;
+            }
+            reservaDao.editarReserva(reserva);
 
             JOptionPane.showMessageDialog(this, "Reserva atualizada com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             this.dispose();

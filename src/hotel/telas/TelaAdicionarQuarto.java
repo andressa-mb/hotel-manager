@@ -4,6 +4,7 @@
  */
 package hotel.telas;
 
+import hotel.DAO.QuartosDAO;
 import hotel.model.Quartos;
 import java.util.List;
 import javax.swing.JOptionPane;
@@ -24,11 +25,13 @@ public class TelaAdicionarQuarto extends javax.swing.JFrame {
         initComponents();
         this.quartosList = quartosList;
         this.telaPrincipal = telaPrincipal;
-        preencherCampos();
+        carregarProximoId();
     }
 
-    public void preencherCampos() {
-
+    private void carregarProximoId() {
+        QuartosDAO dao = new QuartosDAO();
+        Integer proximoId = dao.obterProximoId();
+        txtId.setText(proximoId.toString());
     }
 
     /**
@@ -192,12 +195,16 @@ public class TelaAdicionarQuarto extends javax.swing.JFrame {
             double valorDiaria = ((Number) txtValorDiaria.getValue()).doubleValue();
             String comodidades = txtComodidades.getText();
             boolean disponivel = cbxDisponivel.getSelectedItem().equals("Sim");
+            String text = txtId.getText();
 
-            Quartos novoQuarto = new Quartos(numero, tipo, disponivel, valorDiaria, comodidades);
+            Integer id = (text == null || text.isEmpty()) ? 0 : Integer.valueOf(text);
 
-            TelaPrincipalAdmin.adicionarQuarto(novoQuarto);
+            Quartos novoQuarto = new Quartos(id, numero, tipo, disponivel, valorDiaria, comodidades);
+            QuartosDAO dao = new QuartosDAO();
+            dao.cadastrar(novoQuarto);
+            telaPrincipal.adicionarQuarto(novoQuarto);
 
-            telaPrincipal.preencheTabelaQuartos(quartosList);
+            JOptionPane.showMessageDialog(this, "Quarto cadastrado com sucesso. ");
             this.dispose();
 
         } catch (NumberFormatException e) {

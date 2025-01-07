@@ -1,5 +1,8 @@
 package hotel.telas;
 
+import hotel.DAO.QuartosDAO;
+import hotel.DAO.ReservaDAO;
+import hotel.DAO.UsuariosDAO;
 import hotel.model.Quartos;
 import hotel.model.Reserva;
 import hotel.model.Usuarios;
@@ -13,6 +16,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -26,10 +30,13 @@ import javax.swing.table.DefaultTableModel;
 
 public class TelaPrincipalAdmin extends javax.swing.JFrame {
 
-    private static List<Reserva> reservasList = TelaInicial.getListaReservasCadastradas();
-    private static List<Quartos> quartosList = TelaInicial.getQuartosCadastrados();
-    private static List<Usuarios> usuariosList = TelaInicial.getListaUsuarios();
+    QuartosDAO quartosDAO = new QuartosDAO();
+    private List<Quartos> quartosList = quartosDAO.getQuartos();
+    UsuariosDAO usuariosDAO = new UsuariosDAO();
+    private List<Usuarios> usuariosList = usuariosDAO.getUsuarios();
     private static Usuarios usuarioLogado = TelaLogin.getUsuarioLogado();
+    ReservaDAO reservaDAO = new ReservaDAO();
+    private List<Reserva> reservasList = reservaDAO.getReservas();
 
     public TelaPrincipalAdmin(Usuarios usuario) {
         initComponents();
@@ -65,7 +72,7 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
                 String.valueOf(reserva.getDataPrevCheckout()),
                 String.valueOf(reserva.getDataCheckout()),
                 String.valueOf(reserva.getStatus()),
-                reserva.getDetalhesPagamento()
+                String.valueOf(reserva.getDetalhesPagamento())
             };
             i++;
         }
@@ -96,6 +103,7 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
     }
 
     public void preencheTabelaQuartos(List<Quartos> quartosList) {
+
         String colunas[] = {"Id", "Número", "Tipo", "Disponível", "Valor da diária", "Comodidades"};
         String dados[][] = new String[quartosList.size()][colunas.length];
 
@@ -457,7 +465,6 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
         pnsMain.setViewportView(scrollPane); // Coloca o JScrollPane no painel principal
         pnsMain.revalidate(); // Atualiza o painel
         pnsMain.repaint();
-
         preencheTabelaQuartos(quartosList);
     }//GEN-LAST:event_btnQuartosActionPerformed
 
@@ -653,25 +660,34 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_btnAdicionarUsuarioActionPerformed
 
+    public void atualizarUsuarios() {
+        usuariosList = usuariosDAO.getUsuarios(); // Recarrega do banco
+        preencheTabelaUsuarios(usuariosList); // Atualiza a tabela
+    }
+
     private void btnEditarUsuarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarUsuarioActionPerformed
         int linhaSelecionada = tblResults.getSelectedRow();
 
         if (linhaSelecionada >= 0) {
-            Usuarios usuarioSelecionado = usuariosList.get(linhaSelecionada);
-            TelaDadosUsuario dadosUsuario = new TelaDadosUsuario(usuarioSelecionado);
-            dadosUsuario.setVisible(true);
-            dadosUsuario.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            int usuarioId = Integer.parseInt(tblResults.getValueAt(linhaSelecionada, 0).toString());
+            Usuarios usuarioSelecionado = null;
 
-            dadosUsuario.addWindowListener(new WindowAdapter() {
-                @Override
-                public void windowClosed(WindowEvent we) {
-                    preencheTabelaUsuarios(usuariosList);
-
+            for (Usuarios u : usuariosList) {
+                if (u.getId() == usuarioId) {
+                    usuarioSelecionado = u;
+                    break;
                 }
-            });
+            }
+
+            if (usuarioSelecionado != null) {
+                TelaDadosUsuario dadosUsuario = new TelaDadosUsuario(usuarioSelecionado, this);
+                dadosUsuario.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this, "Selecione um usuário para editar.");
+            }
 
         } else {
-            JOptionPane.showMessageDialog(this, "Erro ao acessar os dados do usuário!",
+            JOptionPane.showMessageDialog(this, "Erro ao editar o usuário.",
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnEditarUsuarioActionPerformed
@@ -680,21 +696,34 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
         try {
             int linhaSelecionada = tblResults.getSelectedRow();
             if (linhaSelecionada >= 0) {
-                int id = Integer.parseInt((String) tblResults.getValueAt(linhaSelecionada, 0));
-                int resposta = JOptionPane.showConfirmDialog(this, "Deseja excluir o usuário: " + id + " ?");
-                if (resposta == 0) {
+                int idUsuario = Integer.parseInt((String) tblResults.getValueAt(linhaSelecionada, 0));
+                int resposta = JOptionPane.showConfirmDialog(this, "Deseja excluir o usuário: " + idUsuario + " ?");
+                if (resposta == JOptionPane.YES_OPTION) {
                     Usuarios userSelecionado = null;
                     for (Usuarios u : usuariosList) {
-                        if (u.getId() == id) {
+                        if (u.getId() == idUsuario) {
                             userSelecionado = u;
                             break;
                         }
                     }
 
-                    usuariosList.removeIf(u -> u.getId() == id);
-                    preencheTabelaUsuarios(usuariosList);
+                    List<Reserva> reservasUsuario = new ArrayList<>();
+                    reservasUsuario = reservaDAO.getReservasUsuario(idUsuario);
 
-                    JOptionPane.showMessageDialog(null, "Usuário excluído com sucesso.");
+                    if (userSelecionado != null) {
+                        if (reservasUsuario.isEmpty()) {
+                            int id = userSelecionado.getId();
+                            usuariosDAO.excluir(id);
+                            usuariosList.removeIf(u -> u.getId() == idUsuario);
+                            preencheTabelaUsuarios(usuariosList);
+                            JOptionPane.showMessageDialog(null, "Usuário excluído com sucesso.");
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Usuário tem reservas cadastradas e não pode ser excluído do banco.");
+                        }
+
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Usuário não encontrado.");
+                    }
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Selecione um usuário para excluir.");
@@ -707,10 +736,16 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
     private void btnAdicionarQuartoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAdicionarQuartoActionPerformed
         TelaAdicionarQuarto telaAddQuarto = new TelaAdicionarQuarto(quartosList, this);
         telaAddQuarto.setVisible(true);
-        preencheTabelaQuartos(quartosList);
+        telaAddQuarto.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent we) {
+                preencheTabelaQuartos(quartosList);
+
+            }
+        });
     }//GEN-LAST:event_btnAdicionarQuartoActionPerformed
 
-    public static void adicionarQuarto(Quartos novoQuarto) {
+    public void adicionarQuarto(Quartos novoQuarto) {
         quartosList.add(novoQuarto);
     }
 
@@ -733,7 +768,13 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
                     TelaEditarQuarto telaEditar = new TelaEditarQuarto(quartoSelecionado);
                     telaEditar.setVisible(true);
 
-                    preencheTabelaQuartos(quartosList);
+                    telaEditar.addWindowListener(new WindowAdapter() {
+                        @Override
+                        public void windowClosed(WindowEvent we) {
+                            preencheTabelaQuartos(quartosList);
+                        }
+                    });
+
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "Selecione um quarto para editar.");
@@ -751,7 +792,8 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
             if (linhaSelecionada >= 0) {
                 int idQuarto = Integer.parseInt((String) tblResults.getValueAt(linhaSelecionada, 0));
                 int resposta = JOptionPane.showConfirmDialog(this, "Deseja excluir o usuário: " + idQuarto + " ?");
-                if (resposta == 0) {
+
+                if (resposta == JOptionPane.YES_OPTION) {
                     Quartos quartoSelecionado = null;
                     for (Quartos q : quartosList) {
                         if (q.getId() == idQuarto) {
@@ -760,9 +802,25 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
                         }
                     }
 
-                    quartosList.removeIf(q -> q.getId() == idQuarto);
-                    preencheTabelaQuartos(quartosList);
-                    JOptionPane.showMessageDialog(null, "Quarto excluído com sucesso.");
+                    List<Quartos> quartosReservados = reservaDAO.getQuartosReservados(idQuarto);
+
+                    if (quartoSelecionado != null) {
+                        if (quartosReservados.isEmpty()) {
+                            int id = quartoSelecionado.getId();
+                            QuartosDAO dao = new QuartosDAO();
+                            dao.excluir(id);
+                            JOptionPane.showMessageDialog(null, "Quarto excluído com sucesso.");
+                            quartosList.remove(quartoSelecionado);
+                            preencheTabelaQuartos(quartosList);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Quarto está reservado não é possível excluir.");
+                        }
+
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Quarto não encontrado.");
+
+                    }
+
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "Selecione um quarto para excluir.");
@@ -776,10 +834,17 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
     private void btnAdicionarReservasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAdicionarReservasActionPerformed
         TelaAdicionarReserva telaAddReserva = new TelaAdicionarReserva(reservasList, this);
         telaAddReserva.setVisible(true);
-        preencheTabelaReservas(reservasList);
+
+        telaAddReserva.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent we) {
+                preencheTabelaReservas(reservasList);
+
+            }
+        });
     }//GEN-LAST:event_btnAdicionarReservasActionPerformed
 
-    public static void adicionarReserva(Reserva novaReserva) {
+    public void adicionarReserva(Reserva novaReserva) {
         reservasList.add(novaReserva);
     }
 
@@ -826,7 +891,7 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
             if (linhaSelecionada >= 0) {
                 int idReserva = Integer.parseInt((String) tblResults.getValueAt(linhaSelecionada, 0));
                 int resposta = JOptionPane.showConfirmDialog(this, "Deseja excluir a reserva: " + idReserva + " ?");
-                if (resposta == 0) {
+                if (resposta == JOptionPane.YES_OPTION) {
                     Reserva reservaSelecionada = null;
                     for (Reserva r : reservasList) {
                         if (r.getId() == idReserva) {
@@ -836,6 +901,7 @@ public class TelaPrincipalAdmin extends javax.swing.JFrame {
                     }
 
                     reservasList.removeIf(r -> r.getId() == idReserva);
+                    reservaDAO.excluirReserva(idReserva);
                     preencheTabelaReservas(reservasList);
                     JOptionPane.showMessageDialog(null, "Reserva excluída com sucesso.");
                 }

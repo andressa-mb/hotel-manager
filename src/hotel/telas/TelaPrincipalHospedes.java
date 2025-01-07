@@ -1,11 +1,14 @@
 package hotel.telas;
 
+import hotel.DAO.QuartosDAO;
+import hotel.DAO.ReservaDAO;
 import hotel.model.Quartos;
 import hotel.model.Reserva;
 import hotel.model.Usuarios;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -13,15 +16,19 @@ import javax.swing.table.DefaultTableModel;
 
 public class TelaPrincipalHospedes extends javax.swing.JFrame {
 
-    private List<Reserva> listaReservas = TelaInicial.getListaReservasCadastradas();
-    private List<Quartos> listaQuartos = TelaInicial.getQuartosCadastrados();
+    ReservaDAO reservaDao = new ReservaDAO();
+    private List<Reserva> listaReservas = reservaDao.getReservas();
+    QuartosDAO quartosDAO = new QuartosDAO();
+    private List<Quartos> listaQuartos = quartosDAO.getQuartos();
     private static Usuarios usuarioLogado = TelaLogin.getUsuarioLogado();
+    private Integer id;
 
     public TelaPrincipalHospedes(Usuarios usuario) {
 
         initComponents();
         this.usuarioLogado = usuario;
         preencherTabela();
+        this.id = reservaDao.obterProximoId();
         lblBemVindo.setText("Bem-vindo, " + usuarioLogado.getNome());
         btnCancelar.setEnabled(false);
     }
@@ -38,7 +45,7 @@ public class TelaPrincipalHospedes extends javax.swing.JFrame {
         lblLogoh = new javax.swing.JLabel();
         pnlTelaLateral = new javax.swing.JPanel();
         btnDados = new javax.swing.JButton();
-        btnReservas = new javax.swing.JButton();
+        btnMinhasReservas = new javax.swing.JButton();
         pnlBusca = new javax.swing.JPanel();
         lblCheckin = new javax.swing.JLabel();
         lblCheckout = new javax.swing.JLabel();
@@ -80,11 +87,11 @@ public class TelaPrincipalHospedes extends javax.swing.JFrame {
             }
         });
 
-        btnReservas.setFont(new java.awt.Font("Perpetua", 0, 18)); // NOI18N
-        btnReservas.setText("Minhas Reservas");
-        btnReservas.addActionListener(new java.awt.event.ActionListener() {
+        btnMinhasReservas.setFont(new java.awt.Font("Perpetua", 0, 18)); // NOI18N
+        btnMinhasReservas.setText("Minhas Reservas");
+        btnMinhasReservas.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnReservasActionPerformed(evt);
+                btnMinhasReservasActionPerformed(evt);
             }
         });
 
@@ -206,7 +213,7 @@ public class TelaPrincipalHospedes extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(pnlTelaLateralLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(btnDados, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(btnReservas, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnMinhasReservas, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlTelaLateralLayout.createSequentialGroup()
                         .addComponent(pnlBusca, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE)))
@@ -218,7 +225,7 @@ public class TelaPrincipalHospedes extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(btnDados)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnReservas)
+                .addComponent(btnMinhasReservas)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pnlBusca, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
@@ -363,21 +370,12 @@ public class TelaPrincipalHospedes extends javax.swing.JFrame {
             LocalDate localDateIn = LocalDate.parse(txtCheckin.getText(), formatter);
             LocalDate localDateOut = LocalDate.parse(txtCheckout.getText(), formatter);
 
-            System.out.println("Data In (LocalDate): " + localDateIn);
-            System.out.println("Data Out (LocalDate): " + localDateOut);
             int adultos = Integer.parseInt(txtAdultos.getText());
-            int criancas = Integer.parseInt(txtCriancas.getText());
+            int criancas = Integer.parseInt(txtCriancas.getText().isEmpty() ? "0" : txtCriancas.getText());
             String comodidades = txtComodidades.getText();
             int valorMaximo = sldDiaria.getValue();
-            System.out.println("Valor máximo" + valorMaximo);
-            boolean qDisponivel = true;
 
-            List<Quartos> quartosFiltrados = new ArrayList<>();
-            for (Quartos q : listaQuartos) {
-                if (q.getValor_diaria() <= valorMaximo && q.getDisponivel()) {
-                    quartosFiltrados.add(q);
-                }
-            }
+            List<Quartos> quartosFiltrados = quartosDAO.filtrarQuartos(adultos, criancas, valorMaximo, localDateIn, localDateOut);
 
             if (quartosFiltrados.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Nenhum quarto disponível para os filtros informados.");
@@ -432,6 +430,18 @@ public class TelaPrincipalHospedes extends javax.swing.JFrame {
             TelaDados telaDados = new TelaDados(usuarioLogado);
             telaDados.setVisible(true);
             telaDados.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+            telaDados.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent we) {
+                    Usuarios usuarioAtualizado = telaDados.getUsuarioAtualizado();
+                    if (usuarioAtualizado != null) {
+                        usuarioLogado = usuarioAtualizado;
+                        lblBemVindo.setText("Bem-vindo, " + usuarioLogado.getNome());
+                    }
+                }
+            });
+
         } else {
             JOptionPane.showMessageDialog(this, "Nenhum usuário está logado!",
                     "Erro", JOptionPane.ERROR_MESSAGE);
@@ -442,12 +452,13 @@ public class TelaPrincipalHospedes extends javax.swing.JFrame {
     private void btnReservarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReservarActionPerformed
         try {
             int linhaSelecionada = tblLista.getSelectedRow();
+            //int idReserva = (int) tblLista.getValueAt(linhaSelecionada, 0);
+
             if (txtCheckin.getText().isEmpty() || txtCheckout.getText().isEmpty() || linhaSelecionada == -1) {
                 JOptionPane.showMessageDialog(this, "Por favor, preencha as dados do filtro de busca ou selecione uma linha.",
                         "Sem dados na busca", JOptionPane.WARNING_MESSAGE);
             } else if (linhaSelecionada >= 0) {
                 DefaultTableModel tabela = (DefaultTableModel) tblLista.getModel();
-
                 int quartoId = (int) tblLista.getValueAt(linhaSelecionada, 0);
 
                 Quartos quartoSelecionado = null;
@@ -463,10 +474,8 @@ public class TelaPrincipalHospedes extends javax.swing.JFrame {
                     LocalDate localDateOut = LocalDate.parse(txtCheckout.getText(), formatter);
                     int hospedeId = usuarioLogado.getId();
 
-                    Reserva novaReserva = new Reserva(hospedeId, quartoId, localDateIn, localDateOut, null, 3, "Pendente");
-                    listaReservas.add(novaReserva);
-                    quartoSelecionado.setDisponivel(false);
-                    preencherTabela();
+                    Reserva novaReserva = new Reserva(this.id, hospedeId, quartoId, localDateIn, localDateOut, null, 2, "Dinheiro");
+                    reservaDao.cadastrar(novaReserva);
                     JOptionPane.showMessageDialog(this, "Reserva registrada com sucesso!\nQuarto número: " + quartoSelecionado.getNumero());
                     limparDados();
                 } else {
@@ -480,51 +489,45 @@ public class TelaPrincipalHospedes extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnReservarActionPerformed
 
-    private void btnReservasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReservasActionPerformed
+    private void btnMinhasReservasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMinhasReservasActionPerformed
 
         try {
-            List<Reserva> reservaDoUsuario = new ArrayList<>();
+            List<Reserva> reservaDoUsuario = reservaDao.getReservasUsuario(usuarioLogado.getId());
 
-            for (Reserva r : listaReservas) {
-                if (r.getHospedeId() == usuarioLogado.getId()) {
-                    reservaDoUsuario.add(r);
-
-                    if (reservaDoUsuario.isEmpty()) {
-                        JOptionPane.showMessageDialog(this, "Nenhuma reserva encontrada para o usuário.",
-                                "Aviso", JOptionPane.INFORMATION_MESSAGE);
-                        return;
-                    }
-
-                    String colunas[] = {"ID Reserva", "ID Hospede", "ID Quarto", "Check-in", "Check-out", "Status", "Pagamento"};
-                    String dados[][] = new String[reservaDoUsuario.size()][colunas.length];
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-                    int i = 0;
-                    for (Reserva reserva : reservaDoUsuario) {
-                        dados[i] = new String[]{
-                            String.valueOf(reserva.getId()),
-                            String.valueOf(reserva.getHospedeId()),
-                            String.valueOf(reserva.getQuartoId()),
-                            reserva.getDataCheckin().format(formatter),
-                            reserva.getDataPrevCheckout().format(formatter),
-                            String.valueOf(reserva.getStatus()),
-                            reserva.getDetalhesPagamento()
-                        };
-                        i++;
-                    }
-
-                    DefaultTableModel tabela = new DefaultTableModel(dados, colunas);
-
-                    tblLista.setModel(tabela);
-                    btnReservar.setEnabled(false);
-                    btnCancelar.setEnabled(true);
-                }
+            if (reservaDoUsuario == null || reservaDoUsuario.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Nenhuma reserva encontrada para o usuário.",
+                        "Aviso", JOptionPane.INFORMATION_MESSAGE);
+                return;
             }
+
+            String colunas[] = {"ID Reserva", "ID Hospede", "ID Quarto", "Check-in", "Check-out", "Status", "Pagamento"};
+            String dados[][] = new String[reservaDoUsuario.size()][colunas.length];
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+            int i = 0;
+            for (Reserva reserva : reservaDoUsuario) {
+                dados[i] = new String[]{
+                    String.valueOf(reserva.getId()),
+                    String.valueOf(reserva.getHospedeId()),
+                    String.valueOf(reserva.getQuartoId()),
+                    reserva.getDataCheckin().format(formatter),
+                    reserva.getDataPrevCheckout().format(formatter),
+                    String.valueOf(reserva.getStatus()),
+                    reserva.getDetalhesPagamento()
+                };
+                i++;
+            }
+
+            DefaultTableModel tabela = new DefaultTableModel(dados, colunas);
+            tblLista.setModel(tabela);
+            btnReservar.setEnabled(false);
+            btnCancelar.setEnabled(true);
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao buscar reservas! " + e.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
-    }//GEN-LAST:event_btnReservasActionPerformed
+    }//GEN-LAST:event_btnMinhasReservasActionPerformed
 
     private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
         try {
@@ -543,16 +546,18 @@ public class TelaPrincipalHospedes extends javax.swing.JFrame {
                 LocalDate dataAtual = LocalDate.now();
 
                 if (dataCheckin.isAfter(dataAtual)) {
-                    String id = (String) tblLista.getValueAt(linhaSelecionada, 0);
-                    int resposta = JOptionPane.showConfirmDialog(this, "Deseja mesmo excluir a reserva de ID " + id + "?", "Confirmação", JOptionPane.YES_NO_OPTION);
+                    int resposta = JOptionPane.showConfirmDialog(this, "Deseja mesmo excluir a reserva de ID " + idReserva + "?", "Confirmação", JOptionPane.YES_NO_OPTION);
                     if (resposta == JOptionPane.YES_OPTION) {
 
                         for (Quartos q : listaQuartos) {
                             if (q.getId() == reservaSelecionada.getQuartoId()) {
-                                q.setDisponivel(true); // Marca o quarto como disponível
+                                q.setDisponivel(true);
                                 break;
                             }
                         }
+
+                        int idReservaSelecionada = reservaSelecionada.getId();
+                        reservaDao.excluirReserva(idReservaSelecionada);
                         listaReservas.removeIf(r -> r.getId() == idReserva);
                         preencherTabela();
 
@@ -620,8 +625,8 @@ public class TelaPrincipalHospedes extends javax.swing.JFrame {
     private javax.swing.JButton btnBuscar;
     private javax.swing.JButton btnCancelar;
     private javax.swing.JButton btnDados;
+    private javax.swing.JButton btnMinhasReservas;
     private javax.swing.JButton btnReservar;
-    private javax.swing.JButton btnReservas;
     private javax.swing.JLabel lblAdultos;
     private javax.swing.JLabel lblBemVindo;
     private javax.swing.JLabel lblCheckin;

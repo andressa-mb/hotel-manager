@@ -4,111 +4,27 @@ package hotel.telas;
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
+import hotel.DAO.QuartosDAO;
+import hotel.DAO.ReservaDAO;
 import hotel.model.Quartos;
 import hotel.model.Reserva;
-import hotel.model.Usuarios;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
 public class TelaInicial extends javax.swing.JFrame {
 
-    private static List<Quartos> listaQuartos = new ArrayList<>();
-    private static List<Reserva> listaReservas = new ArrayList<>();
-    private static List<Usuarios> listaUsuarios = new ArrayList<>();
+    QuartosDAO quartosDAO = new QuartosDAO();
+    List<Quartos> listaQuartos = quartosDAO.getQuartos();
+    ReservaDAO reservaDAO = new ReservaDAO();
+    List<Reserva> listaReservas = reservaDAO.getReservas();
 
     public TelaInicial() {
 
         initComponents();
-        cadastrarQuartos();
-        cadastrarReservas();
-        usuariosCadastrados();
         preencherTabela();
-    }
-
-    public static List<Usuarios> getListaUsuarios() {
-        return listaUsuarios;
-    }
-
-    public static void adicionarUsuario(Usuarios usuario) {
-        listaUsuarios.add(usuario);
-    }
-
-    public void usuariosCadastrados() {
-        if (listaUsuarios.isEmpty()) {
-            //Administrador
-            listaUsuarios.add(new Usuarios(1, "Carlos Silva", "Rua das Flores, 123, Rio de Janeiro", "(21)91234-5678", "carlos.silva@hotel.com", "senhaSegura123", "Prefere turnos diurnos"));
-            listaUsuarios.add(new Usuarios(1, "Ana Costa", "Av. João da Silva, 456, Rio de Janeiro", "(11)97654-3210", "ana.costa@hotel.com", "senhaForte456", "Turno da noite"));
-            //Operador
-            listaUsuarios.add(new Usuarios(2, "Lucas Oliveira", "Rua dos Campos, 789, Rio de Janeiro", "(21) 99876-5432", "lucas.oliveira@hotel.com", "senhaComplexa789", "Prefere trabalho remoto"));
-            listaUsuarios.add(new Usuarios(2, "Maria Souza", "Rua do Porto, 321, Rio de Janeiro", "(13)91234-8765", "maria.souza@hotel.com", "senhaSimples123", "Turno da tarde"));
-            //Hospedes
-            listaUsuarios.add(new Usuarios(3, "Tomas Silveira", "Rua do Melancia, 521, Fortaleza", "(88)91564-5205", "tomas23@email.com", "senhaS3", "Quarto com varanda"));
-            listaUsuarios.add(new Usuarios(3, "Milena Kayla", "Rua do Padre, 699, Porto Alegre", "(51)91966-3641", "milena33k@email.com", "senhaPadrao", ""));
-            listaUsuarios.add(new Usuarios(3, "Lucas Martins", "Rua da Costa Verde, 864, São Paulo", "(11)92582-3555", "lucas5ma@email.com", "senha!@#", ""));
-        }
-    }
-
-    public void cadastrarQuartos() {
-        listaQuartos.add(new Quartos(101, "Simples", true, 180.0, "Ar condicionado, Wi-Fi"));
-        listaQuartos.add(new Quartos(102, "Simples", true, 180.0, "Ar condicionado, Wi-Fi"));
-        listaQuartos.add(new Quartos(103, "Duplo", true, 220.0, "Ar condicionado, TV a cabo"));
-        listaQuartos.add(new Quartos(104, "Duplo", true, 220.0, "Ar condicionado, TV a cabo"));
-        listaQuartos.add(new Quartos(201, "Suíte", true, 300.0, "Banheira, Wi-Fi, TV a cabo"));
-        listaQuartos.add(new Quartos(202, "Suíte", true, 300.0, "Banheira, Wi-Fi, TV a cabo"));
-        listaQuartos.add(new Quartos(203, "Suíte com varanda", true, 350.00, "Banheira, Wi-fi, TV a cabo, Vista para o mar"));
-        listaQuartos.add(new Quartos(204, "Suíte com varanda", true, 350.00, "Banheira, Wi-fi, TV a cabo, Vista para o mar"));
-    }
-
-    public void cadastrarReservas() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-        listaReservas.add(new Reserva(6, 8,
-                LocalDate.parse("01/10/2024", formatter),
-                LocalDate.parse("05/10/2024", formatter),
-                null, 3, "Pagamento pendente"));
-
-        listaReservas.add(new Reserva(5, 5,
-                LocalDate.parse("03/10/2024", formatter),
-                LocalDate.parse("08/10/2024", formatter),
-                LocalDate.parse("08/10/2024", formatter), 1, "Pago com cartão"));
-
-        listaReservas.add(new Reserva(7, 1,
-                LocalDate.parse("10/10/2024", formatter),
-                LocalDate.parse("12/10/2024", formatter),
-                LocalDate.parse("12/10/2024", formatter), 1, "Pago em dinheiro"));
-
-        listaReservas.add(new Reserva(7, 3,
-                LocalDate.parse("12/10/2024", formatter),
-                LocalDate.parse("15/10/2024", formatter),
-                null, 3, "Pagamento pendente"));
-
-        listaReservas.add(new Reserva(6, 6,
-                LocalDate.parse("15/10/2024", formatter),
-                LocalDate.parse("20/10/2024", formatter),
-                LocalDate.parse("20/10/2024", formatter), 1, "Pago com transferência bancária"));
-
-        listaReservas.add(new Reserva(5, 4,
-                LocalDate.parse("18/10/2024", formatter),
-                LocalDate.parse("22/10/2024", formatter),
-                null, 1, "Pagamento na chegada"));
-    }
-
-    public static List<Reserva> getListaReservasCadastradas() {
-        if (listaReservas == null) {
-            listaReservas = new ArrayList<>();
-        }
-        return listaReservas;
-    }
-
-    public static List<Quartos> getQuartosCadastrados() {
-        if (listaQuartos == null) {
-            listaQuartos = new ArrayList<>();
-        }
-        return listaQuartos;
     }
 
     /**
@@ -420,21 +336,12 @@ public class TelaInicial extends javax.swing.JFrame {
             LocalDate localDateIn = LocalDate.parse(txtCheckin.getText(), formatter);
             LocalDate localDateOut = LocalDate.parse(txtCheckout.getText(), formatter);
 
-            System.out.println("Data In (LocalDate): " + localDateIn);
-            System.out.println("Data Out (LocalDate): " + localDateOut);
             int adultos = Integer.parseInt(txtAdultos.getText());
-            int criancas = Integer.parseInt(txtCriancas.getText());
+            int criancas = Integer.parseInt(txtCriancas.getText().isEmpty() ? "0" : txtCriancas.getText());
             String comodidades = txtComodidades.getText();
             int valorMaximo = sldDiaria.getValue();
-            System.out.println(valorMaximo);
-            boolean qDisponivel = true;
 
-            List<Quartos> quartosFiltrados = new ArrayList<>();
-            for (Quartos q : listaQuartos) {
-                if (q.getValor_diaria() <= valorMaximo && q.getDisponivel()) {
-                    quartosFiltrados.add(q);
-                }
-            }
+            List<Quartos> quartosFiltrados = quartosDAO.filtrarQuartos(adultos, criancas, valorMaximo, localDateIn, localDateOut);
 
             if (quartosFiltrados.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Nenhum quarto disponível para os filtros informados.");
@@ -450,6 +357,9 @@ public class TelaInicial extends javax.swing.JFrame {
     public void preencherTabela() {
         DefaultTableModel tabela = (DefaultTableModel) tblLista.getModel();
         tabela.setNumRows(0);
+
+        QuartosDAO dao = new QuartosDAO();
+        List<Quartos> listaQuartos = dao.getQuartos();
 
         for (Quartos qt : listaQuartos) {
             if (qt.getDisponivel()) {

@@ -2,16 +2,21 @@ package hotel.model;
 
 public class Quartos {
 
-    private static int idCounter = 1;
     private int id;
     private int numero;
     private String tipo;
     private boolean disponivel;
     private double valor_diaria;
     private String comodidades;
+    private int capacidadeAdultos;
+    private int capacidadeCriancas;
 
-    public Quartos(int numero, String tipo, boolean disponivel, double valor_diaria, String comodidades) {
-        this.id = idCounter++;
+    public Quartos() {
+
+    }
+
+    public Quartos(int id, int numero, String tipo, boolean disponivel, double valor_diaria, String comodidades) {
+        this.id = id;
         this.numero = numero;
         this.tipo = tipo;
         this.disponivel = disponivel;
@@ -66,4 +71,21 @@ public class Quartos {
     public void setComodidades(String comodidades) {
         this.comodidades = comodidades;
     }
+
+    public int getCapacidadeAdultos() {
+        return capacidadeAdultos;
+    }
+
+    public void setCapacidadeAdultos(int capacidadeAdultos) {
+        this.capacidadeAdultos = capacidadeAdultos;
+    }
+
+    public int getCapacidadeCriancas() {
+        return capacidadeCriancas;
+    }
+
+    public void setCapacidadeCriancas(int capacidadeCriancas) {
+        this.capacidadeCriancas = capacidadeCriancas;
+    }
+
 }

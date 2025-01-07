@@ -4,6 +4,7 @@
  */
 package hotel.telas;
 
+import hotel.DAO.QuartosDAO;
 import hotel.model.Quartos;
 import javax.swing.JOptionPane;
 
@@ -83,7 +84,7 @@ public class TelaEditarQuarto extends javax.swing.JFrame {
         lblDisponivel.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         lblDisponivel.setText("Disponível");
 
-        cbxDisponivel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Disponível", "Indisponível" }));
+        cbxDisponivel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Sim", "Não" }));
 
         lblDisponivel1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         lblDisponivel1.setText("Valor diária:");
@@ -193,8 +194,12 @@ public class TelaEditarQuarto extends javax.swing.JFrame {
             quarto.setValor_diaria(valorDiaria);
             quarto.setDisponivel(cbxDisponivel.getSelectedItem().equals("Sim"));
 
+            QuartosDAO dao = new QuartosDAO();
+            dao.editar(quarto);
+
             JOptionPane.showMessageDialog(this, "Quarto atualizado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             this.dispose();
+
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Erro: Verifique os valores numéricos! " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }

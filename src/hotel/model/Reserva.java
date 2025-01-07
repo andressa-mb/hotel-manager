@@ -4,7 +4,6 @@ import java.time.LocalDate;
 
 public class Reserva {
 
-    private static int idCounter = 1;
     private int id;
     private int hospedeId;
     private int quartoId;
@@ -12,10 +11,14 @@ public class Reserva {
     private LocalDate dataPrevCheckout;
     private LocalDate dataCheckout;
     private int status; //1-confirmado 2- cancelado 3-pendente
-    private String detalhesPagamento;
+    private String detalhesPagamento; //Dinheiro - cartão de crédito - cartão de débito
 
-    public Reserva(int hospedeId, int quartoId, LocalDate checkin, LocalDate prevCheckout, LocalDate checkout, int status, String detalhesPagamento) {
-        this.id = idCounter++;
+    public Reserva() {
+
+    }
+
+    public Reserva(int id, int hospedeId, int quartoId, LocalDate checkin, LocalDate prevCheckout, LocalDate checkout, int status, String detalhesPagamento) {
+        this.id = id;
         this.hospedeId = hospedeId;
         this.quartoId = quartoId;
         this.dataCheckin = checkin;

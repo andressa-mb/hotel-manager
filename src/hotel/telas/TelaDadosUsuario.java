@@ -1,16 +1,20 @@
 package hotel.telas;
 
+import hotel.DAO.UsuariosDAO;
 import hotel.model.Usuarios;
 import java.util.List;
 import javax.swing.JOptionPane;
 
 public class TelaDadosUsuario extends javax.swing.JFrame {
 
+    UsuariosDAO usuariosDAO = new UsuariosDAO();
     public static Usuarios usuario;
+    private static TelaPrincipalAdmin telaAdmin;
 
-    public TelaDadosUsuario(Usuarios u) {
+    public TelaDadosUsuario(Usuarios u, TelaPrincipalAdmin telaAdmin) {
         initComponents();
         this.usuario = u;
+        this.telaAdmin = telaAdmin;
         preencheCampos();
 
     }
@@ -222,7 +226,7 @@ public class TelaDadosUsuario extends javax.swing.JFrame {
         try {
 
             if (!nome.isEmpty() && !endereco.isEmpty() && !telefone.isEmpty() && !email.isEmpty() && !senha.isEmpty()) {
-                List<Usuarios> listaUsuarios = TelaInicial.getListaUsuarios();
+                List<Usuarios> listaUsuarios = usuariosDAO.getUsuarios();
                 System.out.println("ID do usuário logado tela Dados: " + usuario.getId());
                 for (Usuarios user : listaUsuarios) {
                     if (user.getId() == usuario.getId()) {
@@ -234,9 +238,12 @@ public class TelaDadosUsuario extends javax.swing.JFrame {
                         user.setSenha(senha);
                         user.setPerfilUsuarioId(Integer.parseInt(perfil));
                         user.setPreferencias(preferencias);
+                        usuariosDAO.adminEdita(user);
                         JOptionPane.showMessageDialog(this, "Dados atualizados com sucesso!",
                                 "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                        telaAdmin.atualizarUsuarios();
                         this.dispose();
+
                         return;
                     }
                 }
@@ -284,7 +291,7 @@ public class TelaDadosUsuario extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
-                TelaDadosUsuario editUsuario = new TelaDadosUsuario(usuario);
+                TelaDadosUsuario editUsuario = new TelaDadosUsuario(usuario, telaAdmin);
                 editUsuario.setVisible(true);
                 editUsuario.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
             }

@@ -4,7 +4,9 @@
  */
 package hotel.telas;
 
+import hotel.DAO.UsuariosDAO;
 import hotel.model.Usuarios;
+import java.time.LocalDate;
 import javax.swing.JOptionPane;
 
 /**
@@ -13,6 +15,8 @@ import javax.swing.JOptionPane;
  */
 public class TelaCriarUsuario extends javax.swing.JFrame {
 
+    UsuariosDAO usuariosDAO = new UsuariosDAO();
+    private Integer id;
     private static Usuarios usuarioLogado = TelaLogin.getUsuarioLogado();
 
     /**
@@ -22,6 +26,7 @@ public class TelaCriarUsuario extends javax.swing.JFrame {
         initComponents();
         this.usuarioLogado = usuario;
         this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        this.id = usuariosDAO.obterProximoId();
     }
 
     /**
@@ -207,29 +212,19 @@ public class TelaCriarUsuario extends javax.swing.JFrame {
 
         try {
             if (!nome.isEmpty() && !endereco.isEmpty() && !telefone.isEmpty() && !email.isEmpty() && !senha.isEmpty()) {
-                Usuarios user = new Usuarios(perfil, nome, endereco, telefone, email, senha, "null");
-                TelaInicial.adicionarUsuario(user);
+                Usuarios user = new Usuarios(
+                        this.id, perfil, nome, endereco, telefone, email, senha, "null", LocalDate.now());
+                usuariosDAO.cadastrar(user);
+
+                JOptionPane.showMessageDialog(null, "Usuário cadastrado com sucesso.");
+                this.dispose();
+                TelaPrincipalAdmin admin = new TelaPrincipalAdmin(usuarioLogado);
+                admin.setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(null, "* Os campos são obrigatórios. Favor preencher todos.");
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao cadastrar usuário. " + e.getMessage());
-        } finally {
-            System.out.println("--USUÁRIO CADASTRADO--");
-            for (Usuarios u : TelaInicial.getListaUsuarios()) {
-                System.out.println("Nome: " + u.getNome());
-                System.out.println("Endereço: " + u.getEndereco());
-                System.out.println("Telefone: " + u.getTelefone());
-                System.out.println("Email: " + u.getEmail());
-                System.out.println("Senha: " + u.getSenha());
-                System.out.println("Perfil " + u.getPerfilUsuarioNome());
-                System.out.println("-----------------------------------------");
-            }
-            JOptionPane.showMessageDialog(null, "Usuário cadastrado com sucesso.");
-            this.dispose();
-            TelaPrincipalAdmin admin = new TelaPrincipalAdmin(usuarioLogado);
-            admin.setVisible(true);
-
         }
     }//GEN-LAST:event_btnCadastrarActionPerformed
 

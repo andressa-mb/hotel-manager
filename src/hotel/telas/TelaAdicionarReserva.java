@@ -4,6 +4,9 @@
  */
 package hotel.telas;
 
+import hotel.DAO.QuartosDAO;
+import hotel.DAO.ReservaDAO;
+import hotel.model.Quartos;
 import hotel.model.Reserva;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +21,7 @@ public class TelaAdicionarReserva extends javax.swing.JFrame {
 
     private static TelaPrincipalAdmin telaPrincipal;
     private static List<Reserva> reservasList;
+    ReservaDAO reservaDao = new ReservaDAO();
 
     /**
      * Creates new form TelaAdicionarQuarto
@@ -29,6 +33,12 @@ public class TelaAdicionarReserva extends javax.swing.JFrame {
         initComponents();
         this.reservasList = reservasList;
         this.telaPrincipal = telaPrincipal;
+        carregarProximoId();
+    }
+
+    private void carregarProximoId() {
+        Integer proximoId = reservaDao.obterProximoId();
+        txtId.setText(proximoId.toString());
     }
 
     /**
@@ -125,6 +135,11 @@ public class TelaAdicionarReserva extends javax.swing.JFrame {
         lblPagamento.setText("Pagamento:");
 
         ckbPagamento.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Dinheiro", "Cartão de crédito", "Cartão de débito" }));
+        ckbPagamento.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckbPagamentoActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout pnlMainLayout = new javax.swing.GroupLayout(pnlMain);
         pnlMain.setLayout(pnlMainLayout);
@@ -234,15 +249,35 @@ public class TelaAdicionarReserva extends javax.swing.JFrame {
             if (txtCheckout.getText() != null && !txtCheckout.getText().trim().isEmpty()) {
                 checkout = LocalDate.parse(txtCheckout.getText(), formatter);
             }
+            int statusSelecionado = ckbStatus.getSelectedIndex();
+            switch (statusSelecionado) {
+                case 0:
+                    statusSelecionado = 1; // Confirmado
+                    break;
+                case 1:
+                    statusSelecionado = 2; // Pendente
+                    break;
+                case 2:
+                    statusSelecionado = 3; // Cancelado
+                    break;
+                default:
+                    throw new IllegalArgumentException("Status inválido selecionado!");
+            }
 
-            int status = ckbStatus.getSelectedIndex() + 1;
             String pagamento = (String) ckbPagamento.getSelectedItem();
 
-            Reserva novaReserva = new Reserva(hospedeId, quartoId, checkin, prevCheckout, checkout, status, pagamento);
+            String text = txtId.getText();
+            Integer id = (text == null || text.isEmpty()) ? 0 : Integer.valueOf(text);
 
-            TelaPrincipalAdmin.adicionarReserva(novaReserva);
+            if (!reservaDao.getDisponibilidadeQuarto(quartoId, checkin, prevCheckout)) {
+                JOptionPane.showMessageDialog(this, "Quarto não está disponível nesta data. ");
+                return;
+            }
 
-            telaPrincipal.preencheTabelaReservas(reservasList);
+            Reserva novaReserva = new Reserva(id, hospedeId, quartoId, checkin, prevCheckout, checkout, statusSelecionado, pagamento);
+            reservaDao.cadastrar(novaReserva);
+            telaPrincipal.adicionarReserva(novaReserva);
+            JOptionPane.showMessageDialog(this, "Reserva cadastrada com sucesso. ");
             this.dispose();
 
         } catch (NumberFormatException e) {
@@ -261,6 +296,10 @@ public class TelaAdicionarReserva extends javax.swing.JFrame {
     private void txtCheckoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCheckoutActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtCheckoutActionPerformed
+
+    private void ckbPagamentoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckbPagamentoActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_ckbPagamentoActionPerformed
 
     /**
      * @param args the command line arguments

@@ -4,6 +4,7 @@
  */
 package hotel.telas;
 
+import hotel.DAO.UsuariosDAO;
 import hotel.model.Usuarios;
 import java.util.List;
 import javax.swing.JOptionPane;
@@ -14,6 +15,7 @@ import javax.swing.JOptionPane;
  */
 public class TelaDados extends javax.swing.JFrame {
 
+    UsuariosDAO usuariosDAO = new UsuariosDAO();
     private static Usuarios usuario;
 
     /**
@@ -32,6 +34,10 @@ public class TelaDados extends javax.swing.JFrame {
         txtTelefone.setText(usuario.getTelefone());
         txtPreferencias.setText(usuario.getPreferencias());
         txtSenha.setText(usuario.getSenha());
+    }
+
+    public Usuarios getUsuarioAtualizado() {
+        return this.usuario;
     }
 
     /**
@@ -207,37 +213,27 @@ public class TelaDados extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
-        String nome = txtNome.getText();
-        String endereco = txtEndereco.getText();
-        String telefone = txtTelefone.getText();
-        String email = txtEmail.getText();
-        String senha = txtSenha.getText();
-        String preferencias = txtPreferencias.getText();
-
         try {
-
+            String nome = txtNome.getText();
+            String endereco = txtEndereco.getText();
+            String telefone = txtTelefone.getText();
+            String email = txtEmail.getText();
+            String senha = txtSenha.getText();
+            String preferencias = txtPreferencias.getText();
             if (!nome.isEmpty() && !endereco.isEmpty() && !telefone.isEmpty() && !email.isEmpty() && !senha.isEmpty()) {
-                List<Usuarios> listaUsuarios = TelaInicial.getListaUsuarios();
-                System.out.println("ID do usuário logado tela Dados: " + usuario.getId());
-                for (Usuarios user : listaUsuarios) {
-                    if (user.getId() == usuario.getId()) {
-                        System.out.println("ID na lista: " + user.getId());
-                        user.setNome(nome);
-                        user.setEndereco(endereco);
-                        user.setTelefone(telefone);
-                        user.setEmail(email);
-                        user.setSenha(senha);
-                        user.setPreferencias(preferencias);
-                        JOptionPane.showMessageDialog(this, "Dados atualizados com sucesso!",
-                                "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                        this.dispose();
-                        return;
-                    }
-                }
+                usuario.setNome(nome);
+                usuario.setEndereco(endereco);
+                usuario.setTelefone(telefone);
+                usuario.setEmail(email);
+                usuario.setSenha(senha);
+                usuario.setPreferencias(preferencias);
+                usuariosDAO.hospedeEdita(usuario);
 
-            } else {
-                JOptionPane.showMessageDialog(this, "Por favor, preencha todos os campos!",
-                        "Campos Vazios", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Dados atualizados com sucesso!",
+                        "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+
+                this.dispose();
+                return;
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao salvar os dados. " + e.getMessage());

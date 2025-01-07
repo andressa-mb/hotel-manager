@@ -4,11 +4,13 @@
  */
 package hotel.telas;
 
+import hotel.DAO.UsuariosDAO;
 import hotel.model.Usuarios;
 import hotel.telas.TelaCadastro;
 import hotel.telas.TelaInicial;
 import hotel.telas.TelaPrincipalAdmin;
 import hotel.telas.TelaPrincipalHospedes;
+import java.util.List;
 import javax.swing.JOptionPane;
 
 /**
@@ -17,6 +19,8 @@ import javax.swing.JOptionPane;
  */
 public class TelaLogin extends javax.swing.JFrame {
 
+    UsuariosDAO usuariosDao = new UsuariosDAO();
+    private List<Usuarios> listaUsuarios = usuariosDao.getUsuarios();
     private static Usuarios usuarioLogado = null;
 
     /**
@@ -205,7 +209,7 @@ public class TelaLogin extends javax.swing.JFrame {
         boolean existe = false;
         int perfil = 0;
 
-        for (Usuarios user : TelaInicial.getListaUsuarios()) {
+        for (Usuarios user : listaUsuarios) {
             if (user.getEmail().trim().equalsIgnoreCase(email.trim()) && user.getSenha().trim().equals(senha.trim())) {
                 existe = true;
                 loginSucesso = true;
@@ -214,8 +218,6 @@ public class TelaLogin extends javax.swing.JFrame {
                 break;
             }
         }
-
-        System.out.println(perfil);
 
         if (existe) {
             TelaPrincipalAdmin admin = new TelaPrincipalAdmin(usuarioLogado);

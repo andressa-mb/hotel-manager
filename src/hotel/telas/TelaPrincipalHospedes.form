@@ -115,7 +115,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="1" attributes="0">
                           <Component id="btnDados" alignment="0" max="32767" attributes="0"/>
-                          <Component id="btnReservas" alignment="0" max="32767" attributes="0"/>
+                          <Component id="btnMinhasReservas" alignment="0" max="32767" attributes="0"/>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="pnlBusca" min="-2" max="-2" attributes="0"/>
                               <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
@@ -131,7 +131,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="btnDados" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="btnReservas" min="-2" max="-2" attributes="0"/>
+                      <Component id="btnMinhasReservas" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="pnlBusca" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -151,7 +151,7 @@
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnDadosActionPerformed"/>
               </Events>
             </Component>
-            <Component class="javax.swing.JButton" name="btnReservas">
+            <Component class="javax.swing.JButton" name="btnMinhasReservas">
               <Properties>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Perpetua" size="18" style="0"/>
@@ -159,7 +159,7 @@
                 <Property name="text" type="java.lang.String" value="Minhas Reservas"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnReservasActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnMinhasReservasActionPerformed"/>
               </Events>
             </Component>
             <Container class="javax.swing.JPanel" name="pnlBusca">

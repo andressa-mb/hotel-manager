@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public class Usuarios {
 
-    private static int idCounter = 1;
+    // private static int idCounter = 1;
     private int id;
     private int perfilUsuarioId;
     private String nome;
@@ -15,8 +15,8 @@ public class Usuarios {
     private String preferencias;
     private LocalDate dataCadastro;
 
-    public Usuarios(int perfilUsuarioId, String nome, String endereco, String telefone, String email, String senha, String preferencias) {
-        this.id = idCounter++;
+    public Usuarios(int id, int perfilUsuarioId, String nome, String endereco, String telefone, String email, String senha, String preferencias, LocalDate dataCadastro) {
+        this.id = id;
         this.perfilUsuarioId = perfilUsuarioId;
         this.nome = nome;
         this.endereco = endereco;

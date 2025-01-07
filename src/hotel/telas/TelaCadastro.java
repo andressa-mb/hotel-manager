@@ -4,7 +4,9 @@
  */
 package hotel.telas;
 
+import hotel.DAO.UsuariosDAO;
 import hotel.model.Usuarios;
+import java.time.LocalDate;
 import javax.swing.JOptionPane;
 
 /**
@@ -13,18 +15,23 @@ import javax.swing.JOptionPane;
  */
 public class TelaCadastro extends javax.swing.JFrame {
 
+    UsuariosDAO usuariosDAO = new UsuariosDAO();
+    private Integer id;
+
     /**
      * Creates new form TelaCadastro
      */
     public TelaCadastro() {
         initComponents();
         this.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-
+        this.id = carregarProximoId();
+        System.out.println("TELA CADASTRO");
+        System.out.println("Próximo ID gerado: " + this.id);
     }
 
-    public void cadastrarUsuario(Usuarios usuario) {
-        // Adiciona o usuário à lista centralizada
-        TelaInicial.adicionarUsuario(usuario);
+    public int carregarProximoId() {
+        Integer proximoId = usuariosDAO.obterProximoId();
+        return proximoId;
     }
 
     /**
@@ -211,10 +218,12 @@ public class TelaCadastro extends javax.swing.JFrame {
         try {
 
             if (!nome.isEmpty() && !endereco.isEmpty() && !telefone.isEmpty() && !email.isEmpty() && !senha.isEmpty()) {
-                Usuarios user = new Usuarios(3, nome, endereco, telefone, email, senha, preferencias);
 
-                cadastrarUsuario(user);
-                //listaUsuariosCadastrados.add(user);
+                Usuarios user = new Usuarios(
+                        this.id, 3, nome, endereco, telefone, email, senha, preferencias, LocalDate.now());
+
+                usuariosDAO.cadastrar(user);
+
             } else {
                 JOptionPane.showMessageDialog(null, "* Os campos são obrigatórios. Favor preencher todos.");
 
@@ -222,14 +231,15 @@ public class TelaCadastro extends javax.swing.JFrame {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao cadastrar usuário. " + e.getMessage());
         } finally {
+            System.out.println("TELA CADASTRO");
             System.out.println("--USUÁRIO CADASTRADO--");
-            for (Usuarios u : TelaInicial.getListaUsuarios()) {
-                //for (Usuarios u : listaUsuariosCadastrados) {
+            for (Usuarios u : usuariosDAO.getUsuarios()) {
                 System.out.println("Nome: " + u.getNome());
                 System.out.println("Endereço: " + u.getEndereco());
                 System.out.println("Telefone: " + u.getTelefone());
                 System.out.println("Email: " + u.getEmail());
                 System.out.println("Senha: " + u.getSenha());
+                System.out.println("Data de cadastro: " + u.getDataCadastro());
                 System.out.println("-----------------------------------------");
             }
             JOptionPane.showMessageDialog(null, "Usuário cadastrado com sucesso.");
